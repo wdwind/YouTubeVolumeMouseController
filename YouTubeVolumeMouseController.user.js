@@ -20,8 +20,8 @@
 
     // detect available wheel event
     var support = "onwheel" in document.createElement("div") ? "wheel" : // Modern browsers support "wheel"
-                document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
-                "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
+        document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
+            "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
     player.bind(support, function(event) {
         var originalEvent = event.originalEvent;
@@ -54,7 +54,7 @@
 
         var sliderBar = $("div#sliderBar");
         if (!sliderBar[0]) {
-            $("body").append('<div id="sliderBar"></div>');
+            $("body").append("<div id=\"sliderBar\"></div>");
             GM_addStyle([
                 "#sliderBar {width: 100%;",
                 "height: 20px;",
