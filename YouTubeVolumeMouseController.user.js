@@ -1,20 +1,20 @@
 // ==UserScript==
 // @name YouTube Volume Mouse Controller
 // @namespace wddd
-// @version 1.0.0
+// @version 1.1.0
 // @author wddd
 // @description Control YouTube volume by mouse.
 // @homepage https://github.com/wdwind/YouTubeVolumeMouseController
 // @downloadURL https://github.com/wdwind/YouTubeVolumeMouseController/raw/master/YouTubeVolumeMouseController.user.js
-// @include https://www.youtube.com/watch?v=*
+// @match *://www.youtube.com/*
 // @require https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js
-// @run-at document-end
 // @grant GM_addStyle
 // @noframes
 // ==/UserScript==
 
-(function () {
+function run() {
     "use strict";
+
     var player = $("video");
     var timer = 0;
 
@@ -28,7 +28,7 @@
         var volume = player[0].volume;
         var volumeDelta = 0.05;
         var deltaY = 0;
-        
+
         if (support == "mousewheel") {
             deltaY = originalEvent.wheelDelta;
         } else {
@@ -42,7 +42,7 @@
         $(".ytp-volume-slider-handle").css("left", ((player[0].volume * 100) * 0.4) + "px");
 
         showSlider();
-        
+
         // Prevent the page to scroll
         return false;
     });
@@ -77,4 +77,36 @@
 
         sliderBar.html("Volume: " + (player[0].volume * 100).toFixed(0));
     }
-})();
+}
+
+/**
+ * YouTube use Javascript to navigate between pages. So the script will not work:
+ * 1. If the script only includes/matches the sub pages (like the video page www.youtube.com/watch?v=...)
+ * 2. And the user navigates to the sub page from a page which is not included/matched by the script
+ *
+ * In the above scenario, the script will not be executed.
+ *
+ * To run the script in all cases,
+ * 1. Include/match the whole YouTube host
+ * 2. Detect Javascript events, and run the script appropriately
+ *
+ * Details:
+ * * https://stackoverflow.com/questions/32275387/recall-tampermonkey-script-when-page-location-changes/32277150#32277150
+ * * https://stackoverflow.com/questions/34077641/how-to-detect-page-navigation-on-youtube-and-modify-html-before-page-is-rendered
+ * * https://github.com/1c7/Youtube-Auto-Subtitle-Download/blob/master/Youtube-Subtitle-Downloader/Tampermonkey.js#L122-L152
+ */
+
+// trigger when loading new material design page
+var body = document.getElementsByTagName("body")[0];
+body.addEventListener("yt-navigate-finish", function() {
+    if (window.location.href.includes("/watch?v=")) {
+        run();
+    }
+});
+
+// trigger when loading old page
+window.addEventListener("spfdone", function() {
+    if (window.location.href.includes("/watch?v=")) {
+        run();
+    }
+});
