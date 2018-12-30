@@ -1,14 +1,15 @@
 // ==UserScript==
-// @name YouTube Volume Mouse Controller
-// @namespace wddd
-// @version 1.1.0
-// @author wddd
-// @description Control YouTube volume by mouse.
-// @homepage https://github.com/wdwind/YouTubeVolumeMouseController
-// @downloadURL https://github.com/wdwind/YouTubeVolumeMouseController/raw/master/YouTubeVolumeMouseController.user.js
-// @match *://www.youtube.com/*
-// @require https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js
-// @grant GM_addStyle
+// @name            YouTube Volume Mouse Controller
+// @namespace       wddd
+// @version         1.1.0
+// @author          wddd
+// @license         MIT
+// @description     Control YouTube volume by mouse.
+// @homepage        https://github.com/wdwind/YouTubeVolumeMouseController
+// @downloadURL     https://github.com/wdwind/YouTubeVolumeMouseController/raw/master/YouTubeVolumeMouseController.user.js
+// @match           *://www.youtube.com/*
+// @require         https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js
+// @grant           GM_addStyle
 // @noframes
 // ==/UserScript==
 
