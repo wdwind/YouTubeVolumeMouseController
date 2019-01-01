@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            YouTube Volume Mouse Controller
 // @namespace       wddd
-// @version         1.1.0
+// @version         1.2.0
 // @author          wddd
 // @license         MIT
 // @description     Control YouTube volume by mouse.
@@ -9,7 +9,7 @@
 // @downloadURL     https://github.com/wdwind/YouTubeVolumeMouseController/raw/master/YouTubeVolumeMouseController.user.js
 // @match           *://www.youtube.com/*
 // @require         https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js
-// @grant           GM_addStyle
+// @run-at          document-body
 // @noframes
 // ==/UserScript==
 
@@ -24,7 +24,7 @@ function run() {
         document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
             "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
-    player.bind(support, function(event) {
+    player.unbind(support).bind(support, function (event) {
         var originalEvent = event.originalEvent;
         var volume = player[0].volume;
         var volumeDelta = 0.05;
@@ -37,47 +37,76 @@ function run() {
         }
 
         volume += (deltaY > 0 ? -volumeDelta : volumeDelta);
+
+        if (player[0].muted) {
+            // Unmute first
+            $(".ytp-mute-button").click();
+        }
+
         player[0].volume = Math.max(0, Math.min(1, volume));
 
         $(".ytp-volume-panel").attr("aria-valuenow", (player[0].volume * 100).toFixed(0));
-        $(".ytp-volume-slider-handle").css("left", ((player[0].volume * 100) * 0.4) + "px");
+        $(".ytp-volume-slider-handle").css({
+            left: ((player[0].volume * 100) * 0.4) + "px"
+        });
 
-        showSlider();
+        timer = showSlider(timer);
 
         // Prevent the page to scroll
         return false;
     });
+}
 
-    function showSlider() {
-        if (timer) {
-            clearTimeout(timer);
-        }
-
-        var sliderBar = $("div#sliderBar");
-        if (!sliderBar[0]) {
-            $("body").append("<div id=\"sliderBar\"></div>");
-            GM_addStyle([
-                "#sliderBar {width: 100%;",
-                "height: 20px;",
-                "position: fixed;",
-                "top: 63px;",
-                "z-index: 9999;",
-                "text-align: center;",
-                "color: #fff;",
-                "font-size: initial;",
-                "opacity: 0.9;",
-                "background-color: rgba(0,0,0,0.2);}",
-            ].join(" "));
-            sliderBar = $("div#sliderBar");
-        }
-
-        sliderBar.fadeIn(100);
-        timer = setTimeout(function() {
-            sliderBar.fadeOut(700);
-        }, 1000);
-
-        sliderBar.html("Volume: " + (player[0].volume * 100).toFixed(0));
+function showSlider(timer) {
+    if (timer) {
+        clearTimeout(timer);
     }
+
+    var sliderBar = $("div#sliderBar");
+    if (!sliderBar[0]) {
+        $(".html5-video-container").append("<div id=\"sliderBar\"></div>");
+        sliderBar = $("div#sliderBar");
+        sliderBar.css({
+            "width": "100%",
+            "height": "20px",
+            "position": "relative",
+            "z-index": "9999",
+            "text-align": "center",
+            "color": "#fff",
+            "font-size": "initial",
+            "opacity": "0.9",
+            "background-color": "rgba(0,0,0,0.2)",
+        });
+    }
+
+    sliderBar.css({
+        "top": getSliderBarTopProp()
+    });
+
+    sliderBar.fadeIn(100);
+    timer = setTimeout(function () {
+        sliderBar.fadeOut(700);
+    }, 1000);
+
+    sliderBar.html("Volume: " + ($("video")[0].volume * 100).toFixed(0));
+
+    return timer;
+}
+
+function getSliderBarTopProp() {
+    var fullScreenTitle = $(".ytp-title");
+    if (fullScreenTitle[0] && fullScreenTitle.is(":visible")) {
+        return fullScreenTitle.height();
+    }
+
+    var videoTop = $("video")[0].getBoundingClientRect().top;
+    var headerBoundingBox = $("#masthead-positioner, #masthead-container")[0].getBoundingClientRect();
+    var headerTop = headerBoundingBox.top;
+    var headerHeight = headerBoundingBox.height;
+
+    var overlap = (headerHeight + headerTop > 0) ? Math.max(0, headerHeight - videoTop) : 0;
+
+    return overlap;
 }
 
 /**
@@ -97,16 +126,22 @@ function run() {
  * * https://github.com/1c7/Youtube-Auto-Subtitle-Download/blob/master/Youtube-Subtitle-Downloader/Tampermonkey.js#L122-L152
  */
 
-// trigger when loading new material design page
-var body = document.getElementsByTagName("body")[0];
-body.addEventListener("yt-navigate-finish", function() {
+// trigger when navigating to new material design page
+window.addEventListener("yt-navigate-finish", function () {
     if (window.location.href.includes("/watch?v=")) {
         run();
     }
 });
 
-// trigger when loading old page
-window.addEventListener("spfdone", function() {
+// trigger when navigating to the old page
+window.addEventListener("spfdone", function () {
+    if (window.location.href.includes("/watch?v=")) {
+        run();
+    }
+});
+
+// trigger when directly loading the page
+window.addEventListener("DOMContentLoaded", function () {
     if (window.location.href.includes("/watch?v=")) {
         run();
     }
