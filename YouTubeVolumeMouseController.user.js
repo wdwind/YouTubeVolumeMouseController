@@ -4,7 +4,7 @@
 // @version         1.2.0
 // @author          wddd
 // @license         MIT
-// @description     Control YouTube volume by mouse.
+// @description     Control YouTube video volume by mouse wheel.
 // @homepage        https://github.com/wdwind/YouTubeVolumeMouseController
 // @downloadURL     https://github.com/wdwind/YouTubeVolumeMouseController/raw/master/YouTubeVolumeMouseController.user.js
 // @match           *://www.youtube.com/*
