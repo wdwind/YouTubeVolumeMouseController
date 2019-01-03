@@ -162,16 +162,6 @@ var observer = new MutationObserver(function(mutations) {
         observer.disconnect();
         return;
     }
-    
-    mutations.forEach(function(mutation) {
-        mutation.addedNodes.forEach(function(node) {
-            if (node.tagName && node.tagName.toLowerCase() === "video") {
-                run();
-                observer.disconnect();
-                return;
-            }
-        });
-    });
 });
 
 observer.observe(document.body, /* config */ {childList: true, subtree: true});
