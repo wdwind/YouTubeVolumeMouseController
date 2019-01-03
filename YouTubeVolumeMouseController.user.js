@@ -1,18 +1,21 @@
 // ==UserScript==
 // @name            YouTube Volume Mouse Controller
 // @namespace       wddd
-// @version         1.3.0
+// @version         1.4.0
 // @author          wddd
 // @license         MIT
 // @description     Control YouTube video volume by mouse wheel.
 // @homepage        https://github.com/wdwind/YouTubeVolumeMouseController
 // @downloadURL     https://github.com/wdwind/YouTubeVolumeMouseController/raw/master/YouTubeVolumeMouseController.user.js
 // @match           *://www.youtube.com/*
-// @require         https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js
 // ==/UserScript==
 
+function getVideo() {
+    return document.getElementsByTagName("video")[0];
+}
+
 function run() {
-    var player = $("video");
+    var player = getVideo();
     var timer = 0;
 
     // detect available wheel event
@@ -20,9 +23,9 @@ function run() {
         document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
             "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
-    player.off(support).on(support, function (event) {
-        var originalEvent = event.originalEvent;
-        var volume = player[0].volume;
+    player.addEventListener(support, function (event) {
+        var originalEvent = event; //.originalEvent;
+        var volume = player.volume;
         var volumeDelta = 0.05;
         var deltaY = 0;
 
@@ -34,21 +37,21 @@ function run() {
 
         volume += (deltaY > 0 ? -volumeDelta : volumeDelta);
 
-        if (player[0].muted) {
+        if (player.muted) {
             // Unmute first
-            $(".ytp-mute-button").click();
+            document.getElementsByClassName("ytp-mute-button")[0].click();
         }
 
-        player[0].volume = Math.max(0, Math.min(1, volume));
+        player.volume = Math.max(0, Math.min(1, volume));
 
-        $(".ytp-volume-panel").attr("aria-valuenow", (player[0].volume * 100).toFixed(0));
-        $(".ytp-volume-slider-handle").css({
-            left: ((player[0].volume * 100) * 0.4) + "px"
-        });
+        document.getElementsByClassName("ytp-volume-panel")[0].setAttribute("aria-valuenow", (player.volume * 100).toFixed(0));
+        addCss(document.getElementsByClassName("ytp-volume-slider-handle")[0], {left: ((player.volume * 100) * 0.4) + "px"});
 
         timer = showSlider(timer);
 
         // Prevent the page to scroll
+        event.preventDefault();
+        event.stopImmediatePropagation();
         return false;
     });
 }
@@ -60,22 +63,26 @@ function showSlider(timer) {
 
     var sliderBar = appendSlideBar();
 
-    sliderBar.fadeIn(100);
+    sliderBar.style.display = "block";
     timer = setTimeout(function () {
-        sliderBar.fadeOut(700);
+        sliderBar.style.display = "none";
     }, 1000);
 
-    sliderBar.html("Volume: " + ($("video")[0].volume * 100).toFixed(0));
+    sliderBar.innerText = "Volume: " + (getVideo().volume * 100).toFixed(0);
 
     return timer;
 }
 
 function appendSlideBar() {
-    var sliderBar = $("div#sliderBar");
-    if (!sliderBar[0]) {
-        $(".html5-video-container").append("<div id=\"sliderBar\"></div>");
-        sliderBar = $("div#sliderBar");
-        sliderBar.css({
+    var sliderBar = document.getElementById("sliderBar");
+    if (!sliderBar) {
+        var sliderBarElement = document.createElement("div");
+        sliderBarElement.id = "sliderBar";
+
+        document.getElementsByClassName("html5-video-container")[0].appendChild(sliderBarElement);
+
+        sliderBar = document.getElementById("sliderBar");
+        addCss(sliderBar, {
             "width": "100%",
             "height": "20px",
             "position": "relative",
@@ -88,21 +95,26 @@ function appendSlideBar() {
         });
     }
 
-    sliderBar.css({
-        "top": getSliderBarTopProp()
-    });
+    addCss(sliderBar, {"top": getSliderBarTopProp() + "px"});
 
     return sliderBar;
 }
 
+function addCss(element, css) {
+    for (var cssAttr in css) {
+        element.style[cssAttr] = css[cssAttr];
+    }
+}
+
 function getSliderBarTopProp() {
-    var fullScreenTitle = $(".ytp-title");
-    if (fullScreenTitle[0] && fullScreenTitle.is(":visible")) {
-        return fullScreenTitle.height();
+    var fullScreenTitle = document.getElementsByClassName("ytp-title")[0]; // $(".ytp-title");
+    if (fullScreenTitle && fullScreenTitle.offsetParent) {
+        return fullScreenTitle.offsetHeight;
     }
 
-    var videoTop = $("video")[0].getBoundingClientRect().top;
-    var headerBoundingBox = $("#masthead-positioner, #masthead-container")[0].getBoundingClientRect();
+    var videoTop = getVideo().getBoundingClientRect().top;
+    var headerBoundingBox = 
+        (document.getElementById("masthead-positioner") || document.getElementById("masthead-container")).getBoundingClientRect();
     var headerTop = headerBoundingBox.top;
     var headerHeight = headerBoundingBox.height;
 
@@ -157,10 +169,9 @@ window.addEventListener("DOMContentLoaded", function () {
  * (In YouTube the contents are loaded asynchronously.)
  */
 var observer = new MutationObserver(function() {
-    if ($("video")[0]) {
+    if (getVideo()) {
         observer.disconnect();
         run();
-        return;
     }
 });
 
