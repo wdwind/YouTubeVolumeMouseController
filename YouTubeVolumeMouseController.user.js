@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            YouTube Volume Mouse Controller
 // @namespace       wddd
-// @version         1.2.0
+// @version         1.3.0
 // @author          wddd
 // @license         MIT
 // @description     Control YouTube video volume by mouse wheel.
@@ -9,13 +9,9 @@
 // @downloadURL     https://github.com/wdwind/YouTubeVolumeMouseController/raw/master/YouTubeVolumeMouseController.user.js
 // @match           *://www.youtube.com/*
 // @require         https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js
-// @run-at          document-body
-// @noframes
 // ==/UserScript==
 
 function run() {
-    "use strict";
-
     var player = $("video");
     var timer = 0;
 
@@ -24,7 +20,7 @@ function run() {
         document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
             "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
-    player.unbind(support).bind(support, function (event) {
+    player.off(support).on(support, function (event) {
         var originalEvent = event.originalEvent;
         var volume = player[0].volume;
         var volumeDelta = 0.05;
@@ -62,6 +58,19 @@ function showSlider(timer) {
         clearTimeout(timer);
     }
 
+    var sliderBar = appendSlideBar();
+
+    sliderBar.fadeIn(100);
+    timer = setTimeout(function () {
+        sliderBar.fadeOut(700);
+    }, 1000);
+
+    sliderBar.html("Volume: " + ($("video")[0].volume * 100).toFixed(0));
+
+    return timer;
+}
+
+function appendSlideBar() {
     var sliderBar = $("div#sliderBar");
     if (!sliderBar[0]) {
         $(".html5-video-container").append("<div id=\"sliderBar\"></div>");
@@ -83,14 +92,7 @@ function showSlider(timer) {
         "top": getSliderBarTopProp()
     });
 
-    sliderBar.fadeIn(100);
-    timer = setTimeout(function () {
-        sliderBar.fadeOut(700);
-    }, 1000);
-
-    sliderBar.html("Volume: " + ($("video")[0].volume * 100).toFixed(0));
-
-    return timer;
+    return sliderBar;
 }
 
 function getSliderBarTopProp() {
@@ -146,3 +148,30 @@ window.addEventListener("DOMContentLoaded", function () {
         run();
     }
 });
+
+/**
+ * Use MutationObserver to cover all edge cases.
+ * https://stackoverflow.com/a/39803618
+ * 
+ * This is to handle the use case where navigation happens but <video> has not been loaded yet. 
+ * (In YouTube the contents are loaded asynchronously.)
+ */
+var observer = new MutationObserver(function(mutations) {
+    if ($("video")[0]) {
+        run();
+        observer.disconnect();
+        return;
+    }
+    
+    mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+            if (node.tagName && node.tagName.toLowerCase() === "video") {
+                run();
+                observer.disconnect();
+                return;
+            }
+        });
+    });
+});
+
+observer.observe(document.body, /* config */ {childList: true, subtree: true});
