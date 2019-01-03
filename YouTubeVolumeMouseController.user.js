@@ -156,7 +156,7 @@ window.addEventListener("DOMContentLoaded", function () {
  * This is to handle the use case where navigation happens but <video> has not been loaded yet. 
  * (In YouTube the contents are loaded asynchronously.)
  */
-var observer = new MutationObserver(function(mutations) {
+var observer = new MutationObserver(function() {
     if ($("video")[0]) {
         run();
         observer.disconnect();
