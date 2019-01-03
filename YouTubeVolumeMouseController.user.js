@@ -158,8 +158,8 @@ window.addEventListener("DOMContentLoaded", function () {
  */
 var observer = new MutationObserver(function() {
     if ($("video")[0]) {
-        run();
         observer.disconnect();
+        run();
         return;
     }
 });
