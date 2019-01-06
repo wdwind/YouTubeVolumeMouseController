@@ -24,7 +24,7 @@ function run() {
             "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
     player.addEventListener(support, function (event) {
-        var originalEvent = event; //.originalEvent;
+        var originalEvent = event;
         var volume = player.volume;
         var volumeDelta = 0.05;
         var deltaY = 0;
@@ -107,9 +107,11 @@ function addCss(element, css) {
 }
 
 function getSliderBarTopProp() {
-    var fullScreenTitle = document.getElementsByClassName("ytp-title")[0]; // $(".ytp-title");
+    var fullScreenTitleHeight = 0;
+
+    var fullScreenTitle = document.getElementsByClassName("ytp-title")[0];
     if (fullScreenTitle && fullScreenTitle.offsetParent) {
-        return fullScreenTitle.offsetHeight;
+        fullScreenTitleHeight = fullScreenTitle.offsetHeight;
     }
 
     var videoTop = getVideo().getBoundingClientRect().top;
@@ -120,7 +122,7 @@ function getSliderBarTopProp() {
 
     var overlap = (headerHeight + headerTop > 0) ? Math.max(0, headerHeight - videoTop) : 0;
 
-    return overlap;
+    return Math.max(fullScreenTitleHeight, overlap);
 }
 
 /**
