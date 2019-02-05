@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            YouTube Volume Mouse Controller
 // @namespace       wddd
-// @version         1.4.0
+// @version         1.5.0
 // @author          wddd
 // @license         MIT
 // @description     Control YouTube video volume by mouse wheel.
@@ -14,8 +14,15 @@ function getVideo() {
     return document.getElementsByTagName("video")[0];
 }
 
+function getPlayer() {
+    var ytd_player = document.getElementsByTagName("ytd-player")[0];
+    if (ytd_player) {
+        return ytd_player.getPlayer();
+    }
+}
+
 function run() {
-    var player = getVideo();
+    var player = getPlayer();
     var timer = 0;
 
     // detect available wheel event
@@ -23,10 +30,10 @@ function run() {
         document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
             "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
-    player.addEventListener(support, function (event) {
+    getVideo().addEventListener(support, function (event) {
         var originalEvent = event;
-        var volume = player.volume;
-        var volumeDelta = 0.05;
+        var volume = player.getVolume();
+        var volumeDelta = 5;
         var deltaY = 0;
 
         if (support == "mousewheel") {
@@ -36,18 +43,14 @@ function run() {
         }
 
         volume += (deltaY > 0 ? -volumeDelta : volumeDelta);
+        volume = Math.max(0, Math.min(100, volume));
 
-        if (player.muted) {
-            // Unmute first
-            document.getElementsByClassName("ytp-mute-button")[0].click();
+        if (volume > 0) {
+            player.unMute(true);
         }
+        player.setVolume(volume, true);
 
-        player.volume = Math.max(0, Math.min(1, volume));
-
-        document.getElementsByClassName("ytp-volume-panel")[0].setAttribute("aria-valuenow", (player.volume * 100).toFixed(0));
-        addCss(document.getElementsByClassName("ytp-volume-slider-handle")[0], {left: ((player.volume * 100) * 0.4) + "px"});
-
-        timer = showSlider(timer);
+        timer = showSlider(timer, volume);
 
         // Prevent the page to scroll
         event.preventDefault();
@@ -56,7 +59,7 @@ function run() {
     });
 }
 
-function showSlider(timer) {
+function showSlider(timer, volume) {
     if (timer) {
         clearTimeout(timer);
     }
@@ -68,7 +71,7 @@ function showSlider(timer) {
         sliderBar.style.display = "none";
     }, 1000);
 
-    sliderBar.innerText = "Volume: " + (getVideo().volume * 100).toFixed(0);
+    sliderBar.innerText = "Volume: " + volume;
 
     return timer;
 }
@@ -171,7 +174,7 @@ window.addEventListener("DOMContentLoaded", function () {
  * (In YouTube the contents are loaded asynchronously.)
  */
 var observer = new MutationObserver(function() {
-    if (getVideo()) {
+    if (getVideo() && getPlayer()) {
         observer.disconnect();
         run();
     }
