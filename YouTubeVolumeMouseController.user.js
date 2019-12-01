@@ -31,18 +31,18 @@ function run() {
             "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
     getVideo().addEventListener(support, function (event) {
-        var originalEvent = event;
         var volume = player.getVolume();
         var volumeDelta = 5;
-        var deltaY = 0;
-
-        if (support == "mousewheel") {
-            deltaY = originalEvent.wheelDelta;
-        } else {
-            deltaY = originalEvent.deltaY || originalEvent.detail;
+        var deltaY = support == "mousewheel" ? event.wheelDelta : (event.deltaY || event.detail);
+        
+        // Optimize volume change for touchpad
+        if (Math.abs(deltaY) < 5) {
+            volumeDelta = Math.max(Math.floor(Math.abs(deltaY)), 1);
         }
 
         volume += (deltaY > 0 ? -volumeDelta : volumeDelta);
+
+        // Limit the volume between 0 and 100
         volume = Math.max(0, Math.min(100, volume));
 
         if (volume > 0) {
