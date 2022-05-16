@@ -25,6 +25,12 @@ function getPlayer() {
 
 function run() {
     var player = getPlayer();
+
+    if (!player) {
+        console.log("Player not found (yet).");
+        return;
+    }
+
     var timer = 0;
 
     // detect available wheel event
