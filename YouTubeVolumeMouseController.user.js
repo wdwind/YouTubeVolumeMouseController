@@ -27,6 +27,7 @@ function run() {
     var player = getPlayer();
 
     if (!player) {
+        // eslint-disable-next-line no-console
         console.log("Player not found (yet).");
         return;
     }
