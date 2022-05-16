@@ -15,7 +15,7 @@ function getVideo() {
 }
 
 function getPlayer() {
-    var ytd_player = document.getElementsByTagName("ytd-player")[0];
+    var ytd_player = document.getElementsByTagName("ytd-player");
     for (var player of ytd_player) {
         if (player.getPlayer()) {
             return player.getPlayer();
