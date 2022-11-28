@@ -10,17 +10,21 @@
 // @match           *://www.youtube.com/*
 // ==/UserScript==
 
-function getVideo() {
-    return document.getElementsByTagName("video")[0];
-}
-
-function getPlayer() {
+function getPlayerElement() {
     var ytd_player = document.getElementsByTagName("ytd-player");
     for (var player of ytd_player) {
         if (player.getPlayer()) {
-            return player.getPlayer();
+            return player;
         }
     }
+}
+
+function getVideo() {
+    return getPlayerElement().getElementsByTagName("video")[0];
+}
+
+function getPlayer() {
+    return getPlayerElement().getPlayer();
 }
 
 function run() {
@@ -91,7 +95,7 @@ function appendSlideBar() {
         var sliderBarElement = document.createElement("div");
         sliderBarElement.id = "sliderBar";
 
-        document.getElementsByClassName("html5-video-container")[0].appendChild(sliderBarElement);
+        getPlayerElement().getElementsByClassName("html5-video-container")[0].appendChild(sliderBarElement);
 
         sliderBar = document.getElementById("sliderBar");
         addCss(sliderBar, {
