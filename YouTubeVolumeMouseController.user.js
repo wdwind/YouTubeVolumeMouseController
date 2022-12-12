@@ -13,7 +13,7 @@
 function getPlayerElement() {
     var ytd_player = document.getElementsByTagName("ytd-player");
     for (var player of ytd_player) {
-        if (player.getPlayer()) {
+        if (player.getPlayer() && player.className.indexOf('preview') == -1) {
             return player;
         }
     }
