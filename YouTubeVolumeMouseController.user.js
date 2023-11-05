@@ -20,11 +20,11 @@ function getPlayerElement() {
 }
 
 function getVideo() {
-    return getPlayerElement().getElementsByTagName("video")[0];
+    return getPlayerElement()?.getElementsByTagName("video")[0];
 }
 
 function getPlayer() {
-    return getPlayerElement().getPlayer();
+    return getPlayerElement()?.getPlayer();
 }
 
 function run() {
