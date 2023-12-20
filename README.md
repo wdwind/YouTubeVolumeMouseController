@@ -4,4 +4,4 @@ This is a Tampermonkey script to enable YouTube video volume control by mouse. I
 
 ## Install
 
-https://greasyfork.org/zh-CN/scripts/376002-youtube-volume-mouse-controller
+https://greasyfork.org/en/scripts/376002-youtube-volume-mouse-controller
