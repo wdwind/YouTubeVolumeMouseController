@@ -10,27 +10,43 @@
 // @match           *://www.youtube.com/*
 // ==/UserScript==
 
-function getPlayerElement() {
-    var ytd_player = document.getElementsByTagName("ytd-player");
-    for (var player of ytd_player) {
-        if (player.getPlayer() && player.className.indexOf('preview') == -1) {
-            return player;
+var ytb = {
+    inIframe: function() {
+        try {
+            return window.self !== window.top;
+        } catch (e) {
+            return true;
         }
+    },
+    getPlayerElement: function() {
+        if (!this.inIframe()) {
+            var ytd_player = document.getElementsByTagName("ytd-player");
+            for (var player of ytd_player) {
+                if (player.getPlayer() && player.className.indexOf('preview') == -1) {
+                    return player;
+                }
+            }
+        } else {
+            return this.getPlayer();
+        }
+    },
+    getVideo: function() {
+        return this.getPlayerElement()?.getElementsByTagName("video")[0];
+    },
+    getPlayer: function() {
+        if (!this.inIframe()) {
+            return this.getPlayerElement()?.getPlayer();
+        } else {
+            return document.getElementsByClassName("html5-video-player")[0];
+        }
+    },
+    ready: function() {
+        return this.getPlayer() && this.getVideo();
     }
 }
 
-function getVideo() {
-    return getPlayerElement()?.getElementsByTagName("video")[0];
-}
-
-function getPlayer() {
-    return getPlayerElement()?.getPlayer();
-}
-
 function run() {
-    var player = getPlayer();
-
-    if (!player) {
+    if (!ytb.getPlayer()) {
         // eslint-disable-next-line no-console
         console.log("Player not found (yet).");
         return;
@@ -43,8 +59,8 @@ function run() {
         document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
             "DOMMouseScroll"; // let"s assume that remaining browsers are older Firefox
 
-    getVideo().addEventListener(support, function (event) {
-        var volume = player.getVolume();
+    ytb.getVideo().addEventListener(support, function (event) {
+        var volume = ytb.getPlayer().getVolume();
         var volumeDelta = 5;
         var deltaY = support == "mousewheel" ? event.wheelDelta : (event.deltaY || event.detail);
         
@@ -59,9 +75,9 @@ function run() {
         volume = Math.max(0, Math.min(100, volume));
 
         if (volume > 0) {
-            player.unMute(true);
+            ytb.getPlayer().unMute(true);
         }
-        player.setVolume(volume, true);
+        ytb.getPlayer().setVolume(volume, true);
 
         timer = showSlider(timer, volume);
 
@@ -95,7 +111,7 @@ function appendSlideBar() {
         var sliderBarElement = document.createElement("div");
         sliderBarElement.id = "sliderBar";
 
-        getPlayerElement().getElementsByClassName("html5-video-container")[0].appendChild(sliderBarElement);
+        ytb.getPlayerElement().getElementsByClassName("html5-video-container")[0].appendChild(sliderBarElement);
 
         sliderBar = document.getElementById("sliderBar");
         addCss(sliderBar, {
@@ -111,7 +127,9 @@ function appendSlideBar() {
         });
     }
 
-    addCss(sliderBar, {"top": getSliderBarTopProp() + "px"});
+    if (!ytb.inIframe()) {
+        addCss(sliderBar, {"top": getSliderBarTopProp() + "px"});
+    }
 
     return sliderBar;
 }
@@ -130,7 +148,7 @@ function getSliderBarTopProp() {
         fullScreenTitleHeight = fullScreenTitle.offsetHeight;
     }
 
-    var videoTop = getVideo().getBoundingClientRect().top;
+    var videoTop = ytb.getVideo().getBoundingClientRect().top;
     var headerBoundingBox = 
         (document.getElementById("masthead-positioner") || document.getElementById("masthead-container")).getBoundingClientRect();
     var headerTop = headerBoundingBox.top;
@@ -187,7 +205,7 @@ window.addEventListener("DOMContentLoaded", function () {
  * (In YouTube the contents are loaded asynchronously.)
  */
 var observer = new MutationObserver(function() {
-    if (getVideo() && getPlayer()) {
+    if (ytb.ready()) {
         observer.disconnect();
         run();
     }
