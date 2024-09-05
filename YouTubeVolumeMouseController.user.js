@@ -18,8 +18,11 @@ var ytb = {
             return true;
         }
     },
+    isEmbed: function() {
+        return this.inIframe || window.location.href.includes('youtube.com/embed');
+    },
     getPlayerElement: function() {
-        if (!this.inIframe()) {
+        if (!this.isEmbed()) {
             var ytd_player = document.getElementsByTagName("ytd-player");
             for (var player of ytd_player) {
                 if (player.getPlayer() && player.className.indexOf('preview') == -1) {
@@ -34,7 +37,7 @@ var ytb = {
         return this.getPlayerElement()?.getElementsByTagName("video")[0];
     },
     getPlayer: function() {
-        if (!this.inIframe()) {
+        if (!this.isEmbed()) {
             return this.getPlayerElement()?.getPlayer();
         } else {
             return document.getElementsByClassName("html5-video-player")[0];
@@ -127,7 +130,7 @@ function appendSlideBar() {
         });
     }
 
-    if (!ytb.inIframe()) {
+    if (!ytb.isEmbed()) {
         addCss(sliderBar, {"top": getSliderBarTopProp() + "px"});
     }
 
